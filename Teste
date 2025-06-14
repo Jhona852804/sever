@@ -1,0 +1,48 @@
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+
+-- Nome único da barreira
+local barreiraNome = "Barreira_Atacantes"
+local barreiraPos = Vector3.new(0, 5, -50)
+local barreiraTam = Vector3.new(20, 20, 1)
+
+-- Reposição se for deletada
+local function criarBarreira()
+	if Workspace:FindFirstChild(barreiraNome) then return Workspace[barreiraNome] end
+
+	local barreira = Instance.new("Part")
+	barreira.Name = barreiraNome
+	barreira.Anchored = true
+	barreira.Size = barreiraTam
+	barreira.Position = barreiraPos
+	barreira.Transparency = 1
+	barreira.CanCollide = true
+	barreira.Parent = Workspace
+
+	-- Evento de toque
+	barreira.Touched:Connect(function(hit)
+		local character = hit:FindFirstAncestorOfClass("Model")
+		local player = Players:GetPlayerFromCharacter(character)
+		if player and player.Team and player.Team.Name ~= "Atacantes" then
+			local humanoidRoot = character:FindFirstChild("HumanoidRootPart")
+			if humanoidRoot then
+				wait(0.1)
+				-- Teleporta de volta
+				humanoidRoot.CFrame = CFrame.new(Vector3.new(-20, 5, 0)) -- ajuste
+			end
+		end
+	end)
+
+	return barreira
+end
+
+criarBarreira()
+
+-- Se for deletada, recria
+RunService.Stepped:Connect(function()
+	if not Workspace:FindFirstChild(barreiraNome) then
+		warn("Barreira deletada! Recriando...")
+		criarBarreira()
+	end
+end)
